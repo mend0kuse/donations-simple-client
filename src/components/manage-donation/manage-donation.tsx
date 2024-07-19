@@ -31,12 +31,8 @@ export const ManageDonation = ({
         return <p>Loading ...</p>;
     }
 
-    if (!user) {
-        return null;
-    }
-
-    const isOwner = destination.toString() === user.address;
-    if (!isOwner && user.role === USER_ROLE.USER) {
+    const isOwner = destination.toString() === user?.address;
+    if (!user || (!isOwner && user.role === USER_ROLE.USER)) {
         return null;
     }
 
@@ -63,7 +59,7 @@ export const ManageDonation = ({
 
     return (
         <div className="manage-donation">
-            <div className='buttons'>
+            <div className="buttons">
                 <button onClick={onToggle}>{isChangeFormOpen ? 'Cancel' : 'Change'}</button>
                 <button onClick={onEnable}>Enable</button>
                 <button onClick={onDisable}>Disable</button>

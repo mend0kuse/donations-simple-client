@@ -8,6 +8,8 @@ import {
     Dictionary,
     Sender,
     SendMode,
+    serializeTuple,
+    TupleBuilder,
 } from '@ton/core';
 
 export type DonationManagerConfig = {
@@ -101,6 +103,28 @@ export class DonationManager implements Contract {
         ).stack;
 
         return result.readAddress();
+    }
+
+    buildRemoveAdminsBody(admins: Address[]) {
+        const builder = new TupleBuilder();
+        admins.forEach((admin) => builder.writeAddress(admin));
+
+        return beginCell()
+            .storeUint(0x9, 32)
+            .storeUint(1n, 64)
+            .storeRef(serializeTuple(builder.build()))
+            .endCell();
+    }
+
+    buildAddAdminsBody(admins: Address[]) {
+        const builder = new TupleBuilder();
+        admins.forEach((admin) => builder.writeAddress(admin));
+
+        return beginCell()
+            .storeUint(0x7, 32)
+            .storeUint(1n, 64)
+            .storeRef(serializeTuple(builder.build()))
+            .endCell();
     }
 
     buildCreateDonationBody({

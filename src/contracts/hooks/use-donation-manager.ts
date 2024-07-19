@@ -1,4 +1,4 @@
-import { Address, toNano } from '@ton/core';
+import { Address, Dictionary, toNano } from '@ton/core';
 import { CHAIN, useTonConnectUI } from '@tonconnect/ui-react';
 import dayjs from 'dayjs';
 import { useCallback } from 'react';
@@ -61,7 +61,7 @@ export const useDonationManager = () => {
             hardcap: bigint;
         }) => {
             try {
-                await tonConnectUI.sendTransaction({
+                const result = await tonConnectUI.sendTransaction({
                     messages: [
                         {
                             address: donationMangerContract.address.toString(),
@@ -75,6 +75,62 @@ export const useDonationManager = () => {
                     validUntil: dayjs().add(10, 'minutes').unix(),
                     network: CHAIN.TESTNET,
                 });
+
+                return result;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        [tonConnectUI],
+    );
+
+    const removeAdmins = useCallback(
+        async ({ admins }: { admins: Address[] }) => {
+            try {
+                const result = await tonConnectUI.sendTransaction({
+                    messages: [
+                        {
+                            address: donationMangerContract.address.toString(),
+                            amount: toNano('0.05').toString(),
+                            payload: donationMangerContract
+                                .buildRemoveAdminsBody(admins)
+                                .toBoc()
+                                .toString('base64'),
+                        },
+                    ],
+                    validUntil: dayjs().add(10, 'minutes').unix(),
+                    network: CHAIN.TESTNET,
+                });
+
+                console.log(result);
+                return result;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        [tonConnectUI],
+    );
+
+    const addAdmins = useCallback(
+        async ({ admins }: { admins: Address[] }) => {
+            try {
+                const result = await tonConnectUI.sendTransaction({
+                    messages: [
+                        {
+                            address: donationMangerContract.address.toString(),
+                            amount: toNano('0.05').toString(),
+                            payload: donationMangerContract
+                                .buildAddAdminsBody(admins)
+                                .toBoc()
+                                .toString('base64'),
+                        },
+                    ],
+                    validUntil: dayjs().add(10, 'minutes').unix(),
+                    network: CHAIN.TESTNET,
+                });
+
+                console.log(result);
+                return result;
             } catch (error) {
                 console.log(error);
             }
@@ -85,6 +141,8 @@ export const useDonationManager = () => {
     return {
         ...contractData,
         getRoleByAddress,
+        removeAdmins,
+        addAdmins,
         getItemAddressByIndex,
         createDonation,
         refetchContractData: refetchContractState,

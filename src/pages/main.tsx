@@ -11,7 +11,6 @@ export const MainPage = () => {
 
 // TODO
 
-// add/remove admins
-// enable/disable admins
-// create donations
+// enable/disable contracts
+// check pass hardcap contract behavior
 // change settings

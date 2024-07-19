@@ -1,4 +1,5 @@
 import { CreateDonationForm } from '../components/create-donation-form/create-donation-form';
+import { ManageAdmins } from '../components/manage-admins/manage-admins';
 import { useConnectedUser } from '../contracts/hooks/use-connected-user';
 import { Layout } from './layout';
 
@@ -17,6 +18,7 @@ export const DashboardPage = () => {
         return (
             <div>
                 <p>User role: {user?.role}</p>
+                <ManageAdmins />
                 <CreateDonationForm />
             </div>
         );
@@ -28,5 +30,3 @@ export const DashboardPage = () => {
         </Layout>
     );
 };
-
-//
