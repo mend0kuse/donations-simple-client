@@ -66,10 +66,23 @@ export class DonationManager implements Contract {
         });
     }
 
-    async getOwner(provider: ContractProvider) {
-        const result = (await provider.get('get_owner', [])).stack;
+    async getData(provider: ContractProvider) {
+        const result = (await provider.get('get_contract_data', [])).stack;
 
-        return result.readAddress();
+        return {
+            owner: result.readAddress(),
+            index: result.readBigNumber(),
+            admins: (() => {
+                try {
+                    return result
+                        .readCell()
+                        .beginParse()
+                        .loadDictDirect(Dictionary.Keys.Address(), Dictionary.Values.Address());
+                } catch (error) {
+                    return Dictionary.empty(Dictionary.Keys.Address(), Dictionary.Values.Address());
+                }
+            })(),
+        };
     }
 
     async getManagerRights(provider: ContractProvider, target: Address) {
@@ -82,46 +95,42 @@ export class DonationManager implements Contract {
         return [!!result.readBigNumber(), !!result.readBigNumber()];
     }
 
-    async getAdmins(provider: ContractProvider) {
-        const result = (await provider.get('get_admins', [])).stack;
-
-        try {
-            return result
-                .readCell()
-                .beginParse()
-                .loadDictDirect(Dictionary.Keys.Address(), Dictionary.Values.Address());
-        } catch (error) {
-            return Dictionary.empty(Dictionary.Keys.Address(), Dictionary.Values.Address());
-        }
-    }
-
     async getDonationByIndex(provider: ContractProvider, index: bigint) {
         const result = (
             await provider.get('get_donation_address_by_index', [{ type: 'int', value: index }])
         ).stack;
+
         return result.readAddress();
+    }
+
+    buildCreateDonationBody({
+        deadline,
+        destination,
+        hardcap,
+    }: {
+        hardcap: bigint;
+        destination: Address;
+        deadline: bigint;
+    }) {
+        return beginCell()
+            .storeUint(0x100, 32)
+            .storeUint(1n, 64)
+            .storeCoins(hardcap)
+            .storeAddress(destination)
+            .storeUint(deadline, 32)
+            .endCell();
     }
 
     async sendCreateDonation(
         provider: ContractProvider,
         sender: Sender,
         value: bigint,
-        {
-            deadline,
-            destination,
-            hardcap,
-        }: { hardcap: bigint; destination: Address; deadline: bigint },
+        createData: { hardcap: bigint; destination: Address; deadline: bigint },
     ) {
         await provider.internal(sender, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell()
-                .storeUint(0x100, 32)
-                .storeUint(1n, 64)
-                .storeCoins(hardcap)
-                .storeAddress(destination)
-                .storeUint(deadline, 32)
-                .endCell(),
+            body: this.buildCreateDonationBody(createData),
         });
     }
 }

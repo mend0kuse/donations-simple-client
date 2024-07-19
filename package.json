@@ -16,12 +16,16 @@
     "@ton/ton": "^14.0.0",
     "@tonconnect/ui-react": "^2.0.6",
     "buffer": "^6.0.3",
+    "dayjs": "^1.11.11",
+    "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.25.0",
     "tonweb": "^0.0.66",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",

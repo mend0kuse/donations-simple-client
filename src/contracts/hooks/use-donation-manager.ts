@@ -1,53 +1,86 @@
-import { Address, Dictionary } from '@ton/core';
+import { Address, toNano } from '@ton/core';
+import { CHAIN, useTonConnectUI } from '@tonconnect/ui-react';
+import dayjs from 'dayjs';
+import { useCallback } from 'react';
+import { tonClient } from '../../api/ton-client';
 import { useAsyncInitialize } from '../../hooks/use-async-initialize';
-import { useTonClient } from '../../hooks/use-ton-client';
 import { DonationManager } from '../wrappers/donation-manager';
-import { useCallback, useEffect, useState } from 'react';
+import { USER_ROLE } from './use-connected-user';
+
+const donationMangerContract = tonClient.open(
+    DonationManager.createFromAddress(
+        Address.parse('kQBesKcxhxfrl0Q6ZEG4xLxqihX1iAqt_rVPX_W5z1055LKi'), // todo env
+    ),
+);
+
+const getContractState = async () => {
+    const { owner, admins, index } = await donationMangerContract.getData();
+    return { owner, admins, itemIndex: index };
+};
+
+const getRoleByAddress = async (address: Address) => {
+    const [isOwner, isAdmin] = await donationMangerContract.getManagerRights(address);
+
+    const role = (() => {
+        if (isOwner) {
+            return USER_ROLE.OWNER;
+        }
+
+        if (isAdmin) {
+            return USER_ROLE.ADMIN;
+        }
+
+        return USER_ROLE.USER;
+    })();
+
+    return role;
+};
 
 export const useDonationManager = () => {
-    const tonClient = useTonClient();
-    const [contractData, setContractData] = useState<{
-        owner: null | Address;
-        admins: null | Dictionary<Address, Address>;
-    }>({
-        owner: null,
-        admins: null,
-    });
+    const [tonConnectUI] = useTonConnectUI();
+    const [contractData, setContractData] = useAsyncInitialize(getContractState);
 
-    const donationManger = useAsyncInitialize(async () => {
-        return tonClient?.open(
-            DonationManager.createFromAddress(
-                Address.parse('kQB0lL0IhMnlEXqahCb9nL8L_yhSRuYufZuiWiWGn_jOFi_t'), // todo env
-            ),
-        );
-    }, [tonClient]);
+    const refetchContractState = useCallback(async () => {
+        setContractData(await getContractState());
+    }, [setContractData]);
 
-    useEffect(() => {
-        (async () => {
-            if (!donationManger) {
-                return;
+    const createDonation = useCallback(
+        async ({
+            deadline,
+            destination,
+            hardcap,
+        }: {
+            deadline: bigint;
+            destination: Address;
+            hardcap: bigint;
+        }) => {
+            try {
+                const ads = await tonConnectUI.sendTransaction({
+                    messages: [
+                        {
+                            address: donationMangerContract.address.toString(),
+                            amount: toNano('0.05').toString(),
+                            payload: donationMangerContract
+                                .buildCreateDonationBody({ deadline, destination, hardcap })
+                                .toBoc()
+                                .toString('base64'),
+                        },
+                    ],
+                    validUntil: dayjs().add(10, 'minutes').unix(),
+                    network: CHAIN.TESTNET,
+                });
+                console.log('result tx', ads);
+            } catch (error) {
+                console.log('error tx', error);
             }
-
-            const owner = await donationManger.getOwner();
-            const admins = await donationManger.getAdmins();
-
-            setContractData({ owner, admins });
-        })();
-    }, [donationManger]);
-
-    const checkManagerRights = useCallback(
-        async (address: Address) => {
-            if (!donationManger) {
-                return Promise.resolve(false);
-            }
-
-            return (await donationManger.getManagerRights(address)).some(Boolean);
         },
-        [donationManger],
+        [tonConnectUI],
     );
 
     return {
         ...contractData,
-        checkManagerRights,
+        getRoleByAddress,
+        createDonation,
+        refetchContractData: refetchContractState,
     };
 };

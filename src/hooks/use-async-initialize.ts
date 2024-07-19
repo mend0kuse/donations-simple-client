@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useAsyncInitialize = <T>(func: () => Promise<T>, deps: any[] = []) => {
+export const useAsyncInitialize = <T>(
+    func: () => Promise<T>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deps: any[] = [],
+): [T | null, React.Dispatch<React.SetStateAction<T | null>>] => {
     const [state, setState] = useState<T | null>(null);
 
     useEffect(() => {
         (async () => {
             setState(await func());
         })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps);
 
-    return state;
+    return [state, setState];
 };
