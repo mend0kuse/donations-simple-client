@@ -23,10 +23,10 @@ export type DonationData = {
     wasInited: number;
     index: number;
     balance: number;
-    managerAddress: Address;
+    managerAddress: string;
     hardcap: number;
     isActive: boolean;
-    destination: Address;
+    destination: string;
     deadline: number;
 };
 
@@ -117,6 +117,16 @@ export class Donation implements Contract {
         });
     }
 
+    buildChangeData({ deadline, destination, hardcap }: DonationDataPayload) {
+        return beginCell()
+            .storeUint(0x4, 32)
+            .storeUint(0, 64)
+            .storeAddress(Address.parse(destination))
+            .storeCoins(hardcap)
+            .storeUint(deadline, 32)
+            .endCell();
+    }
+
     async sendChangeSettings(
         provider: ContractProvider,
         sender: Sender,
@@ -133,13 +143,11 @@ export class Donation implements Contract {
         await provider.internal(sender, {
             value: toNano('0.05'),
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell()
-                .storeUint(0x4, 32)
-                .storeUint(0, 64)
-                .storeAddress(destination)
-                .storeCoins(hardcap)
-                .storeUint(deadline, 32)
-                .endCell(),
+            body: this.buildChangeData({
+                deadline: Number(deadline),
+                destination: destination.toString(),
+                hardcap: Number(hardcap),
+            }),
         });
     }
 }

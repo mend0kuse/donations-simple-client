@@ -11,9 +11,13 @@ export const DonationList = () => {
 
     return (
         <div>
-            {Array.from({ length: currentItemsCount }, (_, index) => (
-                <DonationItem key={index} index={index + 1} />
-            ))}
+            <h2>Donations list</h2>
+
+            <div>
+                {Array.from({ length: currentItemsCount }, (_, index) => (
+                    <DonationItem key={index} index={index + 1} />
+                ))}
+            </div>
         </div>
     );
 };

@@ -5,7 +5,7 @@ import { ManageDonation } from '../components/manage-donation/manage-donation';
 
 export const DonationPage = () => {
     const { index } = useParams<{ index: string }>();
-    const { contractData } = useDonation(Number(index));
+    const { contractData, changeData } = useDonation(Number(index));
 
     if (!contractData) {
         return null;
@@ -14,10 +14,7 @@ export const DonationPage = () => {
     return (
         <Layout>
             <div>
-                <ManageDonation
-                    donation={contractData}
-                    onChangeData={(data) => console.log('change', data)}
-                />
+                <ManageDonation donation={contractData} onChangeData={changeData} />
                 <pre>{JSON.stringify(contractData, null, 4)}</pre>
             </div>
         </Layout>

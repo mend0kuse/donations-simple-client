@@ -1,19 +1,11 @@
-import { ChangeEventHandler, useState } from 'react';
+import { ChangeEventHandler, FormEvent, useState } from 'react';
 import { USER_ROLE, useConnectedUser } from '../../contracts/hooks/use-connected-user';
 import { DonationData, DonationDataPayload } from '../../contracts/wrappers/donation';
 import './manage-donation.css';
+import { Address } from '@ton/core';
 
 export const ManageDonation = ({
-    donation: {
-        balance,
-        deadline,
-        destination,
-        hardcap,
-        index,
-        isActive,
-        managerAddress,
-        wasInited,
-    },
+    donation: { deadline, destination, hardcap },
     onChangeData,
 }: {
     donation: DonationData;
@@ -31,8 +23,13 @@ export const ManageDonation = ({
         return <p>Loading ...</p>;
     }
 
-    const isOwner = destination.toString() === user?.address;
-    if (!user || (!isOwner && user.role === USER_ROLE.USER)) {
+    if (!user) {
+        return null;
+    }
+
+    const isOwner = Address.parse(destination).equals(Address.parse(user.address));
+
+    if (!isOwner && user.role === USER_ROLE.USER) {
         return null;
     }
 
@@ -60,12 +57,19 @@ export const ManageDonation = ({
     return (
         <div className="manage-donation">
             <div className="buttons">
-                <button onClick={onToggle}>{isChangeFormOpen ? 'Cancel' : 'Change'}</button>
-                <button onClick={onEnable}>Enable</button>
-                <button onClick={onDisable}>Disable</button>
+                {isOwner && (
+                    <button onClick={onToggle}>{isChangeFormOpen ? 'Cancel' : 'Change'}</button>
+                )}
+
+                {!isOwner && (
+                    <>
+                        <button onClick={onEnable}>Enable</button>
+                        <button onClick={onDisable}>Disable</button>
+                    </>
+                )}
             </div>
             {isChangeFormOpen && (
-                <form className="form">
+                <div className="form">
                     <label>
                         <input value={newData.deadline} name="deadline" onChange={onChangeField} />
                     </label>
@@ -79,8 +83,10 @@ export const ManageDonation = ({
                     <label>
                         <input value={newData.hardcap} name="hardcap" onChange={onChangeField} />
                     </label>
-                    <button onClick={onSubmit}>submit</button>
-                </form>
+                    <button type="submit" onClick={onSubmit}>
+                        submit
+                    </button>
+                </div>
             )}
         </div>
     );

@@ -102,7 +102,6 @@ export const useDonationManager = () => {
                     network: CHAIN.TESTNET,
                 });
 
-                console.log(result);
                 return result;
             } catch (error) {
                 console.log(error);
@@ -129,7 +128,6 @@ export const useDonationManager = () => {
                     network: CHAIN.TESTNET,
                 });
 
-                console.log(result);
                 return result;
             } catch (error) {
                 console.log(error);
