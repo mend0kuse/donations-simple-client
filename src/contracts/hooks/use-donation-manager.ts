@@ -7,6 +7,8 @@ import { useAsyncInitialize } from '../../hooks/use-async-initialize';
 import { DonationManager } from '../wrappers/donation-manager';
 import { USER_ROLE } from './use-connected-user';
 
+// Move to api
+
 const donationMangerContract = tonClient.open(
     DonationManager.createFromAddress(
         Address.parse('kQBesKcxhxfrl0Q6ZEG4xLxqihX1iAqt_rVPX_W5z1055LKi'), // todo env
@@ -15,7 +17,11 @@ const donationMangerContract = tonClient.open(
 
 const getContractState = async () => {
     const { owner, admins, index } = await donationMangerContract.getData();
-    return { owner, admins, itemIndex: index };
+    return { owner, admins, nextItemIndex: Number(index) ?? 1 };
+};
+
+const getItemAddressByIndex = async (index: number) => {
+    return donationMangerContract.getDonationByIndex(BigInt(index));
 };
 
 const getRoleByAddress = async (address: Address) => {
@@ -55,7 +61,7 @@ export const useDonationManager = () => {
             hardcap: bigint;
         }) => {
             try {
-                const ads = await tonConnectUI.sendTransaction({
+                await tonConnectUI.sendTransaction({
                     messages: [
                         {
                             address: donationMangerContract.address.toString(),
@@ -69,9 +75,8 @@ export const useDonationManager = () => {
                     validUntil: dayjs().add(10, 'minutes').unix(),
                     network: CHAIN.TESTNET,
                 });
-                console.log('result tx', ads);
             } catch (error) {
-                console.log('error tx', error);
+                console.log(error);
             }
         },
         [tonConnectUI],
@@ -80,6 +85,7 @@ export const useDonationManager = () => {
     return {
         ...contractData,
         getRoleByAddress,
+        getItemAddressByIndex,
         createDonation,
         refetchContractData: refetchContractState,
     };

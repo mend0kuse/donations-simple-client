@@ -19,6 +19,19 @@ export type DonationConfig = {
     deadline: bigint;
 };
 
+export type DonationData = {
+    wasInited: number;
+    index: number;
+    balance: number;
+    managerAddress: Address;
+    hardcap: number;
+    isActive: boolean;
+    destination: Address;
+    deadline: number;
+};
+
+export type DonationDataPayload = Pick<DonationData, 'destination' | 'hardcap' | 'deadline'>;
+
 export function donationConfigToCell({
     active,
     deadline,
@@ -62,14 +75,14 @@ export class Donation implements Contract {
         const result = (await provider.get('get_donation_data', [])).stack;
 
         return {
-            wasInited: result.readBigNumber(),
-            index: result.readBigNumber(),
-            balance: result.readBigNumber(),
-            managerAddress: result.readAddress(),
-            hardcap: result.readBigNumber(),
-            isActive: !!result.readBigNumber(),
-            destination: result.readAddress(),
-            deadline: result.readBigNumber(),
+            wasInited: Number(result.readBigNumber()),
+            index: Number(result.readBigNumber()),
+            balance: Number(result.readBigNumber()),
+            managerAddress: result.readAddress().toString(),
+            hardcap: Number(result.readBigNumber()),
+            isActive: !!Number(result.readBigNumber()),
+            destination: result.readAddress().toString(),
+            deadline: Number(result.readBigNumber()),
         };
     }
 

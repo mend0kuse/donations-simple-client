@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+// todo add is loading
 export const useAsyncInitialize = <T>(
     func: () => Promise<T>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

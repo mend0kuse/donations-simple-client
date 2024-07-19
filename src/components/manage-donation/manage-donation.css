@@ -1,0 +1,17 @@
+.manage-donation {
+    .form {
+        border: 1px solid black;
+        padding: 20px;
+        margin: 10px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+}

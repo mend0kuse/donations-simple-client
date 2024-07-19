@@ -1,0 +1,7 @@
+.donation-item {
+    border: 1px solid black;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+    color: black;
+}
