@@ -28,6 +28,11 @@ export type DonationData = {
     isActive: boolean;
     destination: string;
     deadline: number;
+    donators?: {
+        address: Address;
+        amount: number;
+        createdAt: number;
+    }[];
 };
 
 export type DonationDataPayload = Pick<DonationData, 'destination' | 'hardcap' | 'deadline'>;
