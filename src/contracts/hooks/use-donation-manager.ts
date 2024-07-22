@@ -1,4 +1,4 @@
-import { Address, Dictionary, toNano } from '@ton/core';
+import { Address, toNano } from '@ton/core';
 import { CHAIN, useTonConnectUI } from '@tonconnect/ui-react';
 import dayjs from 'dayjs';
 import { useCallback } from 'react';
@@ -9,23 +9,23 @@ import { USER_ROLE } from './use-connected-user';
 
 // Move to api
 
-const donationMangerContract = tonClient.open(
+const donationManagerContract = tonClient.open(
     DonationManager.createFromAddress(
-        Address.parse('kQBesKcxhxfrl0Q6ZEG4xLxqihX1iAqt_rVPX_W5z1055LKi'), // todo env
+        Address.parse('kQCV30IEKQZUqEWjkTcTboP-rKI3s3aiZsvk0XSCkaKqU7P8'), // todo env
     ),
 );
 
 const getContractState = async () => {
-    const { owner, admins, index } = await donationMangerContract.getData();
+    const { owner, admins, index } = await donationManagerContract.getData();
     return { owner, admins, nextItemIndex: Number(index) ?? 1 };
 };
 
 const getItemAddressByIndex = async (index: number) => {
-    return donationMangerContract.getDonationByIndex(BigInt(index));
+    return donationManagerContract.getDonationByIndex(BigInt(index));
 };
 
 const getRoleByAddress = async (address: Address) => {
-    const [isOwner, isAdmin] = await donationMangerContract.getManagerRights(address);
+    const [isOwner, isAdmin] = await donationManagerContract.getManagerRights(address);
 
     const role = (() => {
         if (isOwner) {
@@ -64,10 +64,62 @@ export const useDonationManager = () => {
                 const result = await tonConnectUI.sendTransaction({
                     messages: [
                         {
-                            address: donationMangerContract.address.toString(),
+                            address: donationManagerContract.address.toString(),
                             amount: toNano('0.05').toString(),
-                            payload: donationMangerContract
+                            payload: donationManagerContract
                                 .buildCreateDonationBody({ deadline, destination, hardcap })
+                                .toBoc()
+                                .toString('base64'),
+                        },
+                    ],
+                    validUntil: dayjs().add(10, 'minutes').unix(),
+                    network: CHAIN.TESTNET,
+                });
+
+                return result;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        [tonConnectUI],
+    );
+
+    const enableDonation = useCallback(
+        async (index: number) => {
+            try {
+                const result = await tonConnectUI.sendTransaction({
+                    messages: [
+                        {
+                            address: donationManagerContract.address.toString(),
+                            amount: toNano('0.05').toString(),
+                            payload: donationManagerContract
+                                .buildEnableBody(index)
+                                .toBoc()
+                                .toString('base64'),
+                        },
+                    ],
+                    validUntil: dayjs().add(10, 'minutes').unix(),
+                    network: CHAIN.TESTNET,
+                });
+
+                return result;
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        [tonConnectUI],
+    );
+
+    const disableDonation = useCallback(
+        async (index: number) => {
+            try {
+                const result = await tonConnectUI.sendTransaction({
+                    messages: [
+                        {
+                            address: donationManagerContract.address.toString(),
+                            amount: toNano('0.05').toString(),
+                            payload: donationManagerContract
+                                .buildDisableBody(index)
                                 .toBoc()
                                 .toString('base64'),
                         },
@@ -90,9 +142,9 @@ export const useDonationManager = () => {
                 const result = await tonConnectUI.sendTransaction({
                     messages: [
                         {
-                            address: donationMangerContract.address.toString(),
+                            address: donationManagerContract.address.toString(),
                             amount: toNano('0.05').toString(),
-                            payload: donationMangerContract
+                            payload: donationManagerContract
                                 .buildRemoveAdminsBody(admins)
                                 .toBoc()
                                 .toString('base64'),
@@ -116,9 +168,9 @@ export const useDonationManager = () => {
                 const result = await tonConnectUI.sendTransaction({
                     messages: [
                         {
-                            address: donationMangerContract.address.toString(),
+                            address: donationManagerContract.address.toString(),
                             amount: toNano('0.05').toString(),
-                            payload: donationMangerContract
+                            payload: donationManagerContract
                                 .buildAddAdminsBody(admins)
                                 .toBoc()
                                 .toString('base64'),
@@ -138,6 +190,8 @@ export const useDonationManager = () => {
 
     return {
         ...contractData,
+        enableDonation,
+        disableDonation,
         getRoleByAddress,
         removeAdmins,
         addAdmins,

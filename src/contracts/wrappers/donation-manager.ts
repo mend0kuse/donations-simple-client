@@ -52,6 +52,22 @@ export class DonationManager implements Contract {
         });
     }
 
+    buildEnableBody(index: number) {
+        return beginCell()
+            .storeUint(0x10, 32)
+            .storeUint(1n, 64)
+            .storeUint(BigInt(index), 64)
+            .endCell();
+    }
+
+    buildDisableBody(index: number) {
+        return beginCell()
+            .storeUint(0x6, 32)
+            .storeUint(1n, 64)
+            .storeUint(BigInt(index), 64)
+            .endCell();
+    }
+
     async sendAddAdmins(provider: ContractProvider, via: Sender, value: bigint, admins: Cell) {
         await provider.internal(via, {
             value,

@@ -1,15 +1,19 @@
-import { ChangeEventHandler, FormEvent, useState } from 'react';
+import { Address } from '@ton/core';
+import { ChangeEventHandler, useState } from 'react';
 import { USER_ROLE, useConnectedUser } from '../../contracts/hooks/use-connected-user';
 import { DonationData, DonationDataPayload } from '../../contracts/wrappers/donation';
 import './manage-donation.css';
-import { Address } from '@ton/core';
 
 export const ManageDonation = ({
     donation: { deadline, destination, hardcap },
     onChangeData,
+    onDisable,
+    onEnable,
 }: {
     donation: DonationData;
     onChangeData: (data: DonationDataPayload) => void;
+    onEnable: () => void;
+    onDisable: () => void;
 }) => {
     const { user, isLoading } = useConnectedUser();
     const [isChangeFormOpen, setIsChangeFormOpen] = useState(false);
@@ -36,8 +40,7 @@ export const ManageDonation = ({
     const onChangeField: ChangeEventHandler<HTMLInputElement> = (event) => {
         setNewData((prev) => ({ ...prev, [event.target.name]: event.target.value }));
     };
-    const onEnable = () => {};
-    const onDisable = () => {};
+
     const onToggle = () => {
         if (isChangeFormOpen) {
             setNewData({

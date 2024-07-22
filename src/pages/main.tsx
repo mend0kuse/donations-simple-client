@@ -11,6 +11,5 @@ export const MainPage = () => {
 
 // TODO
 
-// enable/disable contracts
 // check pass hardcap contract behavior
-// change settings
+// donate
